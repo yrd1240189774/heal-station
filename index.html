@@ -1,0 +1,394 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="format-detection" content="telephone=no,date=no,address=no,email=no" />
+  <title>陪床回血站</title>
+  <style>
+    :root{--bg:#f7f7fb;--fg:#12131a;--card:#fff;--muted:#5c6170;--line:#e7e7ef;--shadow:0 10px 28px rgba(0,0,0,.06);--radius:16px;--tap:44px}
+    [data-theme="dark"]{--bg:#0f1117;--fg:#ececf2;--card:#151925;--muted:#a7adbb;--line:#262b3a;--shadow:0 14px 34px rgba(0,0,0,.35)}
+    *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+    html,body{height:100%}
+    body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text",system-ui,"PingFang SC","Noto Sans SC",Arial,sans-serif;background:var(--bg);color:var(--fg);-webkit-text-size-adjust:100%}
+    .wrap{max-width:760px;margin:0 auto;padding:calc(14px + env(safe-area-inset-top)) 14px calc(92px + env(safe-area-inset-bottom)) 14px}
+    .top{position:sticky;top:0;z-index:3;margin:-10px -14px 12px -14px;padding:calc(10px + env(safe-area-inset-top)) 14px 10px 14px;background:rgba(255,255,255,.55);backdrop-filter:blur(10px);border-bottom:1px solid rgba(0,0,0,.06)}
+    [data-theme="dark"] .top{background:rgba(15,17,23,.55);border-bottom:1px solid rgba(255,255,255,.08)}
+    .topRow{display:flex;gap:10px;align-items:center;justify-content:space-between}
+    .title{font-size:20px;font-weight:800;letter-spacing:.2px}
+    .sub{margin-top:6px;color:var(--muted);line-height:1.45;font-size:14px}
+    .btn{min-height:var(--tap);padding:10px 12px;border-radius:14px;border:1px solid var(--line);background:var(--card);color:var(--fg);box-shadow:0 1px 0 rgba(0,0,0,.02);font-size:15px;cursor:pointer;touch-action:manipulation;user-select:none}
+    .btn:active{transform:translateY(1px)}
+    .iconBtn{padding:10px 12px}
+    .grid{display:grid;grid-template-columns:1fr;gap:12px}
+    @media(min-width:740px){.grid{grid-template-columns:1fr 1fr}}
+    .card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:14px;box-shadow:var(--shadow)}
+    .h{margin:0 0 10px 0;font-weight:800;font-size:16px}
+    .p{margin:8px 0;color:var(--muted);line-height:1.55;font-size:14px}
+    .big{font-size:18px;line-height:1.5}
+    .row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+    .pill{border:1px dashed var(--line);padding:8px 10px;border-radius:999px;color:var(--muted);font-size:13px}
+    .breathBox{display:flex;gap:14px;align-items:center}
+    .orb{width:112px;height:112px;border-radius:50%;border:2px solid var(--line);display:grid;place-items:center;position:relative;overflow:hidden;flex:0 0 auto}
+    .orb::before{content:"";position:absolute;inset:10px;border-radius:50%;background:linear-gradient(135deg, rgba(120,140,255,.25), rgba(255,120,200,.18));transform:scale(.55);transition:transform .25s ease}
+    .orb.grow::before{transform:scale(1)}
+    .timer{font-variant-numeric:tabular-nums;font-size:28px;font-weight:900;position:relative;z-index:1}
+    .canvasWrap{border-radius:14px;border:1px solid var(--line);overflow:hidden}
+    canvas{display:block;width:100%;height:220px;background:transparent;touch-action:none}
+    .bottomBar{position:fixed;left:0;right:0;bottom:0;z-index:5;background:rgba(255,255,255,.76);backdrop-filter:blur(12px);border-top:1px solid rgba(0,0,0,.06);padding:10px 12px calc(10px + env(safe-area-inset-bottom)) 12px;display:flex;gap:10px;justify-content:space-between}
+    [data-theme="dark"] .bottomBar{background:rgba(21,25,37,.76);border-top:1px solid rgba(255,255,255,.08)}
+    .navBtn{flex:1 1 0;min-height:var(--tap);border-radius:14px;border:1px solid var(--line);background:var(--card);color:var(--fg);font-size:14px;font-weight:700;display:flex;align-items:center;justify-content:center;gap:6px;touch-action:manipulation;user-select:none}
+    .navBtn:active{transform:translateY(1px)}
+    .toast{position:fixed;left:50%;bottom:calc(88px + env(safe-area-inset-bottom));transform:translateX(-50%);background:var(--card);border:1px solid var(--line);padding:10px 12px;border-radius:999px;box-shadow:0 14px 36px rgba(0,0,0,.18);display:none;z-index:10;font-size:14px}
+    .mask{position:fixed;inset:0;background:rgba(0,0,0,.35);display:none;z-index:20;padding:calc(16px + env(safe-area-inset-top)) 14px calc(16px + env(safe-area-inset-bottom)) 14px}
+    .modal{max-width:520px;margin:0 auto;background:var(--card);border:1px solid var(--line);border-radius:18px;padding:14px;box-shadow:0 20px 60px rgba(0,0,0,.25)}
+    .modal .h{margin-bottom:6px}
+    .modal .p{margin:6px 0}
+  </style>
+</head>
+<body>
+<div class="wrap" id="app">
+  <div class="top">
+    <div class="topRow">
+      <div>
+        <div class="title">陪床回血站</div>
+      </div>
+      <div class="row" style="gap:8px;justify-content:flex-end;">
+        <button class="btn iconBtn" id="shareBtn" aria-label="分享">📤</button>
+        <button class="btn iconBtn" id="soundBtn" aria-label="音效">🔈</button>
+        <button class="btn iconBtn" id="toggleTheme" aria-label="夜间模式">🌙</button>
+      </div>
+    </div>
+    <div class="sub" id="tipLine">碎片时间：抽卡 → 发泄一句 → 呼吸30秒 → 点泡泡。</div>
+  </div>
+
+  <div class="grid">
+    <section class="card" id="sec-card">
+      <div class="h">🎴 抽一张“加油卡”</div>
+      <div class="big" id="cardText">你今天已经做得很不容易了。先把自己照顾好一点点就行。</div>
+      <div class="row" style="margin-top:10px;">
+        <button class="btn" id="drawCard">再抽一张</button>
+        <span class="pill" id="tinyTask">小任务：喝两口水</span>
+      </div>
+      <div class="p">不需要回消息。你只要看到这一句，就算有人陪到你了。</div>
+    </section>
+
+    <section class="card" id="sec-rage">
+      <div class="h">😤 释放你的情绪</div>
+      <div class="p">选强度，点一下就复制。发给我/发给自己/粘到备忘录都行。</div>
+      <div class="row" style="margin-top:10px;">
+        <button class="btn" id="rageSoftBtn">轻微吐槽</button>
+        <button class="btn" id="rageMedBtn">小脾气</button>
+        <button class="btn" id="rageSpicyBtn">火山模式</button>
+      </div>
+      <div class="p">提示：你可以“先发泄”，再“再呼吸”，最后“啵泡泡”把剩下的烦也啵掉。</div>
+    </section>
+
+    <section class="card" id="sec-breath">
+      <div class="h">🫁 30秒呼吸：4-2-6</div>
+      <div class="breathBox">
+        <div class="orb" id="orb"><div class="timer" id="t">30</div></div>
+        <div style="min-width:180px;">
+          <div class="big" id="phase">按开始，跟着它呼吸</div>
+          <div class="p" id="hint">吸气4秒 → 停2秒 → 呼气6秒（循环）</div>
+          <div class="row" style="margin-top:8px;">
+            <button class="btn" id="startBreath">开始</button>
+            <button class="btn" id="stopBreath">停止</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="card" id="sec-bubble">
+      <div class="h">🫧 点泡泡解压</div>
+      <div class="p">用手指点，泡泡会“啵”地消失。烦躁也一起少一点点。</div>
+      <div class="canvasWrap"><canvas id="cv"></canvas></div>
+      <div class="row" style="margin-top:10px;">
+        <button class="btn" id="moreBubbles">多来点泡泡</button>
+        <span class="pill" id="score">已啵：0</span>
+      </div>
+      <div class="p" style="margin-bottom:0;">在病房建议关掉音效 🔈</div>
+    </section>
+  </div>
+
+  <div class="p" style="margin-top:14px;">
+    不用硬撑。你只要把这一分钟过完，就已经很厉害了。
+  </div>
+</div>
+
+<div class="bottomBar" role="navigation" aria-label="快捷操作">
+  <button class="navBtn" data-go="#sec-card">🎴 抽卡</button>
+  <button class="navBtn" data-go="#sec-rage">😤 发泄</button>
+  <button class="navBtn" data-go="#sec-breath">🫁 呼吸</button>
+  <button class="navBtn" data-go="#sec-bubble">🫧 泡泡</button>
+</div>
+
+<div class="toast" id="toast">已复制 ✅</div>
+
+<div class="mask" id="mask">
+  <div class="modal">
+    <div class="h">📌 可添加到主屏幕（像App一样）</div>
+    <div class="p">在 <b>Safari</b> 打开后，点底部 <b>分享</b> 图标 → 选择 <b>添加到主屏幕</b>。</div>
+    <div class="p">这样一打开就是全屏，大按钮更好点。</div>
+    <div class="row" style="margin-top:10px;">
+      <button class="btn" id="closeMask">知道了</button>
+      <button class="btn" id="dontShow">不再提示</button>
+    </div>
+  </div>
+</div>
+
+<script>
+  const toast=document.getElementById('toast');
+  function showToast(txt){toast.textContent=txt;toast.style.display='block';clearTimeout(showToast._t);showToast._t=setTimeout(()=>toast.style.display='none',1200)}
+
+  const savedTheme=localStorage.getItem('theme');
+  const prefersDark=window.matchMedia&&window.matchMedia('(prefers-color-scheme: dark)').matches;
+  if(savedTheme){if(savedTheme)document.documentElement.dataset.theme=savedTheme}else if(prefersDark){document.documentElement.dataset.theme='dark'}
+  const toggleTheme=document.getElementById('toggleTheme');
+  function syncThemeBtn(){toggleTheme.textContent=document.documentElement.dataset.theme==='dark'?'☀️':'🌙'}
+  syncThemeBtn();
+  toggleTheme.onclick=()=>{const next=document.documentElement.dataset.theme==='dark'?'':'dark';if(next)document.documentElement.dataset.theme=next;else delete document.documentElement.dataset.theme;localStorage.setItem('theme',next);syncThemeBtn()};
+
+  const SHARE_URL = "https://yrd1240189774.github.io/heal-station/";
+const shareBtn = document.getElementById('shareBtn');
+
+shareBtn.onclick = async () => {
+  try {
+    if (navigator.share) {
+      // 只分享网址，不带任何文本/描述
+      await navigator.share({ url: SHARE_URL });
+    } else {
+      // 不支持 Web Share 就复制网址
+      try {
+        await navigator.clipboard.writeText(SHARE_URL);
+        showToast('链接已复制 ✅');
+      } catch (e) {
+        const ta = document.createElement('textarea');
+        ta.value = SHARE_URL;
+        document.body.appendChild(ta);
+        ta.select();
+        document.execCommand('copy');
+        document.body.removeChild(ta);
+        showToast('链接已复制 ✅');
+      }
+    }
+  } catch (e) {
+    showToast('已取消');
+  }
+};
+  let soundOn=localStorage.getItem('sound')!=='off';
+  const soundBtn=document.getElementById('soundBtn');
+  function syncSoundBtn(){soundBtn.textContent=soundOn?'🔈':'🔇'}
+  syncSoundBtn();
+  let audioCtx=null;
+  function ensureAudio(){if(!soundOn)return null;if(!audioCtx)audioCtx=new(window.AudioContext||window.webkitAudioContext)();if(audioCtx.state==='suspended')audioCtx.resume();return audioCtx}
+  function popSound(){if(!soundOn)return;const ctx=ensureAudio();if(!ctx)return;const o=ctx.createOscillator();const g=ctx.createGain();o.type='sine';o.frequency.value=420+Math.random()*120;g.gain.value=0.0001;o.connect(g);g.connect(ctx.destination);const t=ctx.currentTime;g.gain.exponentialRampToValueAtTime(0.10,t+0.01);g.gain.exponentialRampToValueAtTime(0.0001,t+0.09);o.start(t);o.stop(t+0.10)}
+
+  async function copyText(text){
+    try{await navigator.clipboard.writeText(text);showToast('已复制 ✅')}
+    catch(e){const ta=document.createElement('textarea');ta.value=text;document.body.appendChild(ta);ta.select();document.execCommand('copy');document.body.removeChild(ta);showToast('已复制 ✅')}
+  }
+
+  const cards=[
+    "你今天已经做得很不容易了。先把自己照顾好一点点就行。",
+    "你不需要一直坚强。累了就允许自己软一下。",
+    "你现在的任务不是完美，是把自己保住电量。",
+    "你做得够多了，剩下的交给时间和专业的人。",
+    "你可以难过，可以烦，可以想哭——这很正常。",
+    "你不欠任何人“情绪稳定”。你只是太累了。",
+    "今天不求满分，只求你别太苦。",
+    "你已经在一个很难的局里尽力了。",
+    "把今天拆成小块：吃一口热的、喝一口水、闭眼十秒。",
+    "你能撑到现在，说明你真的很强。",
+    "别苛责自己。你已经在做一件很不容易的事。",
+    "你不是脆弱，你只是被消耗了。",
+    "你不必一直懂事，允许自己任性一小会儿。",
+    "你值得被好好对待，尤其是在这种时候。",
+    "你现在最该被照顾的人，也包括你。",
+    "你可以先停一下，再继续。",
+    "你已经很努力了，真的。",
+    "哪怕今天只完成一件事：让自己别太难受，也算赢。",
+    "你不需要立刻振作，慢慢来。",
+    "你现在的情绪不需要被修理，只需要被安放。",
+    "你不是不行，你只是太累。",
+    "把注意力放回自己：呼吸、喝水、放松肩膀。",
+    "你不是麻烦，你是在求生。",
+    "你有权利说：我需要帮助。",
+    "你有权利说：我现在很难。",
+    "你不欠任何人解释。",
+    "你可以先照顾自己，再照顾世界。",
+    "你已经在做超纲题了，别怪自己做不完。",
+    "你能坚持到现在，已经很了不起。",
+    "你不需要一个人硬扛到底。",
+    "你可以选择：先睡一会儿，再说。",
+    "你可以选择：先吃点东西，再想。",
+    "你可以把今天的难，先放一放。",
+    "你可以把明天的事，留到明天再想。",
+    "你现在只要把这一刻过好。",
+    "你能做到的，就是最好的。",
+    "你不需要赢，你只需要撑住。",
+    "你已经很勇敢了。",
+    "你可以把要求降到最低：活着、喝水、吃点热的。",
+    "你可以允许自己不回复任何人。",
+    "你可以允许自己今天很糟。",
+    "你可以允许自己需要被爱。"
+  ];
+  const tasks=["小任务：喝两口水","小任务：把肩放松一次","小任务：闭眼10秒","小任务：深呼吸3次","小任务：吃一口热的","小任务：把手机亮度调低一点","小任务：给自己盖好外套","小任务：伸展一下手指","小任务：站起来走两步","小任务：喝口温水","小任务：把下巴松开"];
+  const cardText=document.getElementById('cardText');
+  const tinyTask=document.getElementById('tinyTask');
+  document.getElementById('drawCard').onclick=()=>{cardText.textContent=cards[Math.floor(Math.random()*cards.length)];tinyTask.textContent=tasks[Math.floor(Math.random()*tasks.length)];popSound()};
+
+  const rageSoft=[
+    "我现在有点烦，但我先不跟世界硬刚。",
+    "我只是需要吐槽一下：今天真的不太友好。",
+    "我现在的耐心像电量：低电模式中。",
+    "我想小小抱怨一句，然后继续当大人。",
+    "我承认：我今天很想被照顾一下。",
+    "我没事（假的），我就想哼一声（真的）。",
+    "我现在有点委屈，先让我叹口气。",
+    "我想说一句：啊……好累。",
+    "我想把今天的烦，先放进回收站。",
+    "我需要一个小小的“哄一下”。"
+  ];
+  const rageMedium=[
+    "我现在开启“小脾气模式”：我要闹一下，闹完就好。",
+    "我现在有点找茬：你别讲逻辑，我只想被哄。",
+    "我知道我在挑刺，但我也是真的累到不想装。",
+    "我现在的状态：嘴硬、心软、还很烦。",
+    "我现在不需要建议，我需要：抱抱 + 热饭 + 安静。",
+    "我就是想任性一分钟，别劝。",
+    "我现在的情绪像 Wi-Fi：断断续续还很卡。",
+    "我现在真的很烦！但我会努力不伤害任何人。",
+    "我不是针对你，我是针对‘今天’。",
+    "我需要一个安全的地方耍耍小脾气。"
+  ];
+  const rageSpicy=[
+    "我现在火山模式：🌋 我真的受够了今天的一切！",
+    "我现在想把烦躁打包扔出窗外（比喻）！",
+    "别再来一件事了！我真的要炸了！",
+    "我现在只想大声说：别逼我！！！",
+    "我现在不想讲道理，我只想先发泄！",
+    "今天谁都别惹我，我是脆皮人类（爆发版）。",
+    "我现在就是：烦+累+饿+困 的混合爆炸口味！",
+    "我受够了！我真的受够了！我要把情绪倒干净！",
+    "我现在就想：啊啊啊啊啊啊啊啊啊！",
+    "我现在的耐心余额：0。再来我就要报警（开玩笑）！"
+  ];
+
+  function pick(arr){return arr[Math.floor(Math.random()*arr.length)]}
+  let rageSoftNext=pick(rageSoft), rageMedNext=pick(rageMedium), rageSpicyNext=pick(rageSpicy);
+  const rageSoftBtn=document.getElementById('rageSoftBtn');
+  const rageMedBtn=document.getElementById('rageMedBtn');
+  const rageSpicyBtn=document.getElementById('rageSpicyBtn');
+
+  rageSoftBtn.onclick=async()=>{const msg=rageSoftNext;rageSoftNext=pick(rageSoft);await copyText(msg);popSound()};
+  rageMedBtn.onclick=async()=>{const msg=rageMedNext;rageMedNext=pick(rageMedium);await copyText(msg);popSound()};
+  rageSpicyBtn.onclick=async()=>{const msg=rageSpicyNext;rageSpicyNext=pick(rageSpicy);await copyText(msg);popSound()};
+
+  const orb=document.getElementById('orb');
+  const tt=document.getElementById('t');
+  const phase=document.getElementById('phase');
+  let breathTimer=null,remaining=30,step=0,stepRemain=0;
+  const plan=[{name:"吸气",sec:4,grow:true},{name:"停一下",sec:2,grow:true},{name:"呼气",sec:6,grow:false}];
+  function setPhase(p){phase.textContent=p.name;orb.classList.toggle('grow',p.grow)}
+  function stopBreath(){if(breathTimer)clearInterval(breathTimer);breathTimer=null;orb.classList.remove('grow')}
+  function tick(){remaining--;tt.textContent=remaining;stepRemain--;if(remaining<=0){stopBreath();phase.textContent="完成啦。给自己一点点肯定。";showToast("完成呼吸 ✅");return}if(stepRemain<=0){step=(step+1)%plan.length;stepRemain=plan[step].sec;setPhase(plan[step])}}
+  function startBreath(){stopBreath();remaining=30;tt.textContent=remaining;step=0;stepRemain=plan[0].sec;setPhase(plan[0]);breathTimer=setInterval(tick,1000);popSound()}
+  document.getElementById('startBreath').onclick=startBreath;
+  document.getElementById('stopBreath').onclick=()=>{stopBreath();showToast('已停止')};
+
+  const cv=document.getElementById('cv');
+  const ctx=cv.getContext('2d');
+  let W=0,H=0,bubbles=[],popped=0;
+
+  function rand(a,b){return a+Math.random()*(b-a)}
+  function resizeCanvas(){const rect=cv.getBoundingClientRect();const dpr=window.devicePixelRatio||1;W=rect.width;H=rect.height;cv.width=Math.max(1,Math.round(W*dpr));cv.height=Math.max(1,Math.round(H*dpr));ctx.setTransform(dpr,0,0,dpr,0,0)}
+  window.addEventListener('resize',()=>resizeCanvas());
+
+  function addBubbles(n=14){for(let i=0;i<n;i++)bubbles.push({x:rand(22,W-22),y:rand(22,H-22),r:rand(16,30),vx:rand(-0.55,0.55),vy:rand(-0.35,0.35),spark:false,ttl:0})}
+  function spawnSparks(x,y){for(let k=0;k<10;k++)bubbles.push({x,y,r:rand(2.5,5.5),vx:rand(-2,2),vy:rand(-2,2),spark:true,ttl:Math.floor(rand(10,18))})}
+
+  const targetPops=30;
+  const milestones=[10,25,50,75,100];
+  let lastMilestone=0;
+  function progressPct(){return Math.min(100,Math.floor((popped/targetPops)*100))}
+  function maybeToastProgress(){
+    const p=progressPct();
+    for(const m of milestones){
+      if(p>=m && lastMilestone<m){
+        lastMilestone=m;
+        if(m===10) showToast("情绪清空 10%：先倒出一点点 ✅");
+        else if(m===25) showToast("情绪清空 25%：好了，轻一点了 ✅");
+        else if(m===50) showToast("情绪清空 50%：一半烦恼被啵掉 ✅");
+        else if(m===75) showToast("情绪清空 75%：快见底了 ✅");
+        else showToast("情绪清空 100%：今天先到这里 ✅");
+        break;
+      }
+    }
+  }
+
+  function hit(mx,my){
+    for(let i=bubbles.length-1;i>=0;i--){
+      const b=bubbles[i];
+      if(b.spark)continue;
+      const dx=mx-b.x,dy=my-b.y;
+      if(dx*dx+dy*dy<=b.r*b.r){
+        bubbles.splice(i,1);
+        popped++;
+        document.getElementById('score').textContent="已啵："+popped;
+        spawnSparks(mx,my);
+        popSound();
+        maybeToastProgress();
+        try{navigator.vibrate&&navigator.vibrate(10)}catch(e){}
+        return true
+      }
+    }
+    return false
+  }
+
+  function draw(){
+    ctx.clearRect(0,0,W,H);
+    for(const b of bubbles){
+      if(b.spark)continue;
+      b.x+=b.vx;b.y+=b.vy;
+      if(b.x<b.r||b.x>W-b.r)b.vx*=-1;
+      if(b.y<b.r||b.y>H-b.r)b.vy*=-1;
+      ctx.beginPath();ctx.arc(b.x,b.y,b.r,0,Math.PI*2);
+      ctx.strokeStyle=getComputedStyle(document.body).getPropertyValue('--line');
+      ctx.lineWidth=2;ctx.stroke();
+      ctx.beginPath();ctx.arc(b.x-b.r*0.32,b.y-b.r*0.32,b.r*0.25,0,Math.PI*2);
+      ctx.fillStyle="rgba(255,255,255,0.35)";ctx.fill();
+    }
+    for(let i=bubbles.length-1;i>=0;i--){
+      const b=bubbles[i];if(!b.spark)continue;
+      b.x+=b.vx;b.y+=b.vy;b.ttl--;
+      ctx.beginPath();ctx.arc(b.x,b.y,b.r,0,Math.PI*2);
+      ctx.fillStyle="rgba(255,220,255,0.65)";ctx.fill();
+      if(b.ttl<=0)bubbles.splice(i,1);
+    }
+    requestAnimationFrame(draw);
+  }
+
+  cv.addEventListener('pointerdown',e=>{const rect=cv.getBoundingClientRect();const mx=e.clientX-rect.left;const my=e.clientY-rect.top;hit(mx,my)});
+  document.getElementById('moreBubbles').onclick=()=>{addBubbles(16);popSound()};
+
+  resizeCanvas();addBubbles(18);draw();
+
+  document.querySelectorAll('.navBtn').forEach(b=>{
+    b.addEventListener('click',()=>{const sel=b.getAttribute('data-go');const el=document.querySelector(sel);if(el)el.scrollIntoView({behavior:'smooth',block:'start'});popSound()})
+  });
+
+  const mask=document.getElementById('mask');
+  const closeMask=document.getElementById('closeMask');
+  const dontShow=document.getElementById('dontShow');
+  function isIOS(){return /iPhone|iPad|iPod/i.test(navigator.userAgent)}
+  function isStandalone(){return (window.navigator.standalone===true)||(window.matchMedia&&window.matchMedia('(display-mode: standalone)').matches)}
+  const noTip=localStorage.getItem('noA2HS')==='1';
+  if(isIOS()&&!isStandalone()&&!noTip){setTimeout(()=>{mask.style.display='block'},900)}
+  closeMask.onclick=()=>{mask.style.display='none'};
+  dontShow.onclick=()=>{localStorage.setItem('noA2HS','1');mask.style.display='none'};
+</script>
+</body>
+</html>
